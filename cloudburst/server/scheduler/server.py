@@ -73,6 +73,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
     scheduler_id = str(uuid.uuid4())
 
+    # Create a zmq context to store all socket created below
     context = zmq.Context(1)
 
     # A mapping from a DAG's name to its protobuf representation.
@@ -142,6 +143,8 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
     pusher_cache = SocketCache(context, zmq.PUSH)
 
+    # Rigister all created sockets in poller which will monitor whether any of these
+    # sockets has been triggered
     poller = zmq.Poller()
     poller.register(connect_socket, zmq.POLLIN)
     poller.register(func_create_socket, zmq.POLLIN)
@@ -161,8 +164,21 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
     start = time.time()
 
+    socks = dict()
+    
     while True:
-        socks = dict(poller.poll(timeout=1000))
+        socks = dict(poller.poll())
+        if exec_status_socket in socks and socks[exec_status_socket] == \
+                zmq.POLLIN:
+            status = ThreadStatus()
+            status.ParseFromString(exec_status_socket.recv())
+
+            policy.process_status(status)
+            socks.pop(exec_status_socket)
+            break
+
+    while True:
+        # socks = dict(poller.poll(timeout=1000))
 
         if connect_socket in socks and socks[connect_socket] == zmq.POLLIN:
             msg = connect_socket.recv_string()
@@ -207,7 +223,9 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
             for fname in dag[0].functions:
                 call_frequency[fname.name] += 1
 
+            print(f"S1. scheduler call dag '{name}'")
             response = call_dag(call, pusher_cache, dags, policy)
+            print(f"S1. scheduler call dag '{name}' done")
             dag_call_socket.send(response.SerializeToString())
 
         if (dag_delete_socket in socks and socks[dag_delete_socket] ==
@@ -335,6 +353,8 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
                 sckt.send(stats.SerializeToString())
 
             start = time.time()
+        
+        socks = dict(poller.poll(timeout=1000))
 
 
 if __name__ == '__main__':

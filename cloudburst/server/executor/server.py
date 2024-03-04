@@ -195,6 +195,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             total_occupancy += elapsed
 
         if dag_queue_socket in socks and socks[dag_queue_socket] == zmq.POLLIN:
+            print("E: In dag queue socket")
             work_start = time.time()
 
             # In order to effectively support batching, we have to make sure we
@@ -213,11 +214,14 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
                         raise e # Unexpected error.
 
                 schedule.ParseFromString(msg)
+                # print(str(schedule))
                 fname = schedule.target_function
+                print(f"E: fname after parse: {fname}")
 
                 logging.info('Received a schedule for DAG %s (%s), function %s.' %
                              (schedule.dag.name, schedule.id, fname))
 
+                # Save each function's requests and arrival time in its queue
                 if fname not in queue:
                     queue[fname] = {}
 
@@ -273,6 +277,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             total_occupancy += elapsed
 
         if dag_exec_socket in socks and socks[dag_exec_socket] == zmq.POLLIN:
+            print("E: In dag exec socket")
             work_start = time.time()
 
             # How many messages to dequeue -- BATCH_SIZE_MAX or 1 depending on

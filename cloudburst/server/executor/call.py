@@ -150,6 +150,7 @@ def _run_function(func, refs, args, user_lib):
 
             func_args += (arg,)
 
+    print(*func_args)
     return func(*func_args)
 
 
@@ -307,9 +308,11 @@ def _exec_dag_function_normal(pusher_cache, kvs, trigger_sets, function,
     else: # There will only be one thing in farg_sets
         fargs = farg_sets[0]
 
+    print(f"func {fname}'s args = {fargs}")
     result_list = _exec_func_normal(kvs, function, fargs, user_lib, cache)
     if not isinstance(result_list, list):
         result_list = [result_list]
+    print(f"func {fname} execution done. result = {result_list}")
 
     successes = []
     is_sink = True
@@ -326,6 +329,7 @@ def _exec_dag_function_normal(pusher_cache, kvs, trigger_sets, function,
                 continue
 
         successes.append(True)
+        # construct trigger for downstream function
         new_trigger = _construct_trigger(schedule.id, fname, result)
         for conn in schedule.dag.connections:
             if conn.source == fname:
@@ -336,6 +340,8 @@ def _exec_dag_function_normal(pusher_cache, kvs, trigger_sets, function,
                 sckt = pusher_cache.get(sutils.get_dag_trigger_address(dest_ip))
                 sckt.send(new_trigger.SerializeToString())
 
+    # if this function is the add of the DAG, 
+    # then its result need to be returned to de client
     if is_sink:
         if schedule.continuation.name:
             for idx, pair in enumerate(zip(schedules, result_list)):

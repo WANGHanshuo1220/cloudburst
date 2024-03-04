@@ -90,6 +90,8 @@ def create_dag(dag_create_socket, pusher_cache, kvs, dags, policy,
             if not success:
                 logging.info(f'Creating DAG {dag.name} failed due to ' +
                              'insufficient resources.')
+                print(f'Creating DAG {dag.name} failed due to ' +
+                             'insufficient resources.')
                 sutils.error.error = NO_RESOURCES
                 dag_create_socket.send(sutils.error.SerializeToString())
 

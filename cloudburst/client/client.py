@@ -259,7 +259,9 @@ class CloudburstConnection():
         if dry_run:
             return dc
 
+        print("C0. client call dag")
         self.dag_call_sock.send(dc.SerializeToString())
+        print("C0. client call dag done")
 
         r = GenericResponse()
         r.ParseFromString(self.dag_call_sock.recv())

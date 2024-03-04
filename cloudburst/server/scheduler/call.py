@@ -90,6 +90,7 @@ def call_dag(call, pusher_cache, dags, policy, request_id=None):
     if call.client_id:
         schedule.client_id = call.client_id
 
+    # Pick an executor for each of the function of the DAG
     for fref in dag.functions:
         args = call.function_args[fref.name].values
 
@@ -119,11 +120,13 @@ def call_dag(call, pusher_cache, dags, policy, request_id=None):
 
         ip, tid = result
         schedule.locations[fref.name] = ip + ':' + str(tid)
+        # print(f"for func {fref.name}, execution ip is {schedule.locations[fref.name]}")
 
         # copy over arguments into the dag schedule
         arg_list = schedule.arguments[fref.name]
         arg_list.values.extend(args)
 
+    # Get trigger functions of each function of the DAG
     for fref in dag.functions:
         loc = schedule.locations[fref.name].split(':')
         ip = utils.get_queue_address(loc[0], loc[1])
@@ -137,8 +140,12 @@ def call_dag(call, pusher_cache, dags, policy, request_id=None):
         schedule.triggers.extend(triggers)
 
         sckt = pusher_cache.get(ip)
+        print(f"S2. send func {fref.name}'s predecessors ({triggers}) to executor({ip})")
         sckt.send(schedule.SerializeToString())
+        print(f"S2. send func {fref.name}'s predecessors done")
 
+    time.sleep(0.5)
+    # It seems that the triggers of the source functions are not in parallel (small overhead)
     for source in sources:
         trigger = DagTrigger()
         trigger.id = schedule.id
@@ -147,7 +154,9 @@ def call_dag(call, pusher_cache, dags, policy, request_id=None):
 
         ip = sutils.get_dag_trigger_address(schedule.locations[source])
         sckt = pusher_cache.get(ip)
+        print(f"S3. scheduler trigger function ({source}) from source")
         sckt.send(trigger.SerializeToString())
+        print(f"S3. scheduler trigger function from {source} done")
 
     response = GenericResponse()
     response.success = True
