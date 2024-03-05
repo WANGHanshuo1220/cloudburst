@@ -3,7 +3,11 @@ from threading import local
 sys.path.append('../')
 from cloudburst.client.client import CloudburstConnection
 
-HYDRO_CLUSTER_FUNC_ELB="a520312ea2ec4429b8d49b57eecbc523-899367550.ap-northeast-1.elb.amazonaws.com"
+HYDRO_CLUSTER_FUNC_ELB="18.176.37.179"
+
+local_cloud = CloudburstConnection(HYDRO_CLUSTER_FUNC_ELB, 
+                                   '127.0.0.1', 
+                                   local=False)
 
 def add(_, x):
     return x+1
@@ -21,10 +25,6 @@ def algebra(_, x):
 
 def sum(_, x, y):
     return x + y*2
-
-local_cloud = CloudburstConnection(HYDRO_CLUSTER_FUNC_ELB, 
-                                   '127.0.0.1', 
-                                   local=False)
 
 func1 = local_cloud.register(add, 'add')
 func2 = local_cloud.register(minus, 'minus')
