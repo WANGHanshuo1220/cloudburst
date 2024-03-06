@@ -29,7 +29,6 @@ gen_yml_list() {
   echo -e "$RESULT"
 }
 
-
 # Download latest version of the code from relevant repository & branch -- if
 # none are specified, we use hydro-project/cloudburst by default. Install the KVS
 # client from the Anna project.
@@ -56,6 +55,8 @@ echo "mgmt_ip: $MGMT_IP" >> conf/cloudburst-config.yml
 # Add the current directory to the PYTHONPATH in order to resolve imports
 # correctly.
 export PYTHONPATH=$PYTHONPATH:$(pwd)
+
+python3 cloudburst/server/executor/server.py
 
 if [[ "$ROLE" = "executor" ]]; then
   echo "executor:" >> conf/cloudburst-config.yml

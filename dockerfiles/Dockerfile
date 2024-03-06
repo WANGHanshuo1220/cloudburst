@@ -20,6 +20,9 @@ RUN apt-get update
 RUN apt-get install -y python3-pip
 RUN apt-get install -y git
 RUN apt-get install net-tools
+RUN apt-get install vim --yes
+RUN apt-get install protobuf-compiler --yes
+RUN pip install protobuf==3.20
 RUN pip3 install Cython
 
 ARG repo_org=WANGHanshuo1220
