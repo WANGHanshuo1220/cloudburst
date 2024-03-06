@@ -14,7 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-IP=`ifconfig ens5 | grep 'inet' | grep -v inet6 | sed -e 's/^[ \t]*//' | cut -d' ' -f2`
+IP=`ifconfig eth0 | grep 'inet' | grep -v inet6 | sed -e 's/^[ \t]*//' | cut -d' ' -f2`
 
 # A helper function that takes a space separated list and generates a string
 # that parses as a YAML list.
@@ -34,18 +34,8 @@ gen_yml_list() {
 # none are specified, we use hydro-project/cloudburst by default. Install the KVS
 # client from the Anna project.
 cd $HYDRO_HOME/anna
-git remote remove origin
-git remote add origin https://github.com/$ANNA_REPO_ORG/anna
-while !(git fetch -p origin); do
-   echo "git fetch failed, retrying..."
-done
-
-git checkout -b brnch origin/$ANNA_REPO_BRANCH
-git submodule sync
-git submodule update
-
 cd client/python
-python3.6 setup.py install
+python3 setup.py install
 
 cd $HYDRO_HOME/cloudburst
 if [[ -z "$REPO_ORG" ]]; then
@@ -55,16 +45,6 @@ fi
 if [[ -z "$REPO_BRANCH" ]]; then
   REPO_BRANCH="master"
 fi
-
-git remote remove origin
-git remote add origin https://github.com/$REPO_ORG/cloudburst
-while !(git fetch -p origin); do
-   echo "git fetch failed, retrying..."
-done
-
-git checkout -b brnch origin/$REPO_BRANCH
-git submodule sync
-git submodule update
 
 # Compile protobufs and run other installation procedures before starting.
 ./scripts/build.sh
@@ -86,7 +66,7 @@ if [[ "$ROLE" = "executor" ]]; then
   echo "$LST" >> conf/cloudburst-config.yml
 
   while true; do
-    python3.6 cloudburst/server/executor/server.py
+    python3 cloudburst/server/executor/server.py
 
     if [[ "$?" = "1" ]]; then
       exit 1
@@ -97,12 +77,12 @@ elif [[ "$ROLE" = "scheduler" ]]; then
   echo "    routing_address: $ROUTE_ADDR" >> conf/cloudburst-config.yml
   echo "    policy: $POLICY" >> conf/cloudburst-config.yml
 
-  python3.6 cloudburst/server/scheduler/server.py
+  python3 cloudburst/server/scheduler/server.py
 elif [[ "$ROLE" = "benchmark" ]]; then
   echo "benchmark:" >> conf/cloudburst-config.yml
   echo "    cloudburst_address: $FUNCTION_ADDR" >> conf/cloudburst-config.yml
   echo "    thread_id: $THREAD_ID" >> conf/cloudburst-config.yml
 
-  python3.6 cloudburst/server/benchmarks/server.py
+  python3 cloudburst/server/benchmarks/server.py
 fi
 

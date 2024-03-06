@@ -5,9 +5,9 @@ from cloudburst.client.client import CloudburstConnection
 
 HYDRO_CLUSTER_FUNC_ELB="18.176.37.179"
 
-local_cloud = CloudburstConnection(HYDRO_CLUSTER_FUNC_ELB, 
+local_cloud = CloudburstConnection('127.0.0.1', 
                                    '127.0.0.1', 
-                                   local=False)
+                                   local=True)
 
 def add(_, x):
     return x+1
