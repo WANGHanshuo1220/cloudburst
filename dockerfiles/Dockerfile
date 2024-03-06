@@ -67,4 +67,7 @@ RUN pip3 install pandas s3fs
 RUN touch a
 RUN pip3 install --upgrade git+https://github.com/devin-petersohn/modin@engines/cloudburst_init
 
-# CMD bash start-cloudburst.sh
+RUN pip install protobuf==3.20
+RUN pip install numpy==1.16.1
+
+CMD bash start-cloudburst.sh

@@ -56,8 +56,6 @@ echo "mgmt_ip: $MGMT_IP" >> conf/cloudburst-config.yml
 # correctly.
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-python3 cloudburst/server/executor/server.py
-
 if [[ "$ROLE" = "executor" ]]; then
   echo "executor:" >> conf/cloudburst-config.yml
   echo "    thread_id: $THREAD_ID" >> conf/cloudburst-config.yml
